@@ -1,12 +1,6 @@
-local gps2 = redis:scard("selfbot:groups")
-local sgps2 = redis:scard("selfbot:supergroups")
-local users2 = redis:scard("selfbot:users")
-local pvmsgs = redis:get("pv:msgs")
-local gpmsgs = redis:get("gp:msgs")
-local sgpmsgs = redis:get("supergp:msgs")
-local links =  redis:smembers("selfbot:links")
 
-,ocal function parsed_url(link)
+
+local function parsed_url(link)
   local parsed_link = URL.parse(link)
   local parsed_path = URL.parse_path(parsed_link.path)
   return parsed_path[2]
@@ -139,7 +133,7 @@ function stats(cb_extra, success, result)
   for k,v in pairs(result) do
     i = i+1
   end
-  local text = "Users : "..users2.."\nPrivate Messages : "..pvmsgs.."\n----------\nGroups : "..gps2.."\nGroups Messages : "..gpmsgs.."\n----------\nSuperGroups : "..sgps2.."\nSuperGroup Messages : "..sgpmsgs.."\n----------\nTotal Saved Links : "..#links.."\nTotal Saved Contacts : "..i
+  local text = "<b>Users </b>: "..users2.."\n<b>Private Messages </b>: "..pvmsgs.."\n\n<b>Groups </b>: "..gps2.."\n<b>Groups Messages </b>: "..gpmsgs.."\n\n<b>SuperGroups </b>: "..sgps2.."\n<b>SuperGroup Messages </b>: "..sgpmsgs.."\n\n<b>Total Saved Links </b>: "..#links.."\n<b>Total Saved Contacts </b>: "..i
   send_large_msg(get_receiver(cb_extra.msg),text, ok_cb, false)
 end
 
@@ -178,7 +172,7 @@ function run(msg,matches)
     get_contact_list(get_contact_list_callback, {target = msg.from.id})
     return "I've sent contact list with both json and text format to your private"
    end
-  --[[if matches[1] == "addmember" and msg.to.type == "channel" then
+  if matches[1] == "addmember" and msg.to.type == "channel" then
     if not is_sudo(msg) then-- Sudo only
       return
     end
@@ -188,7 +182,7 @@ function run(msg,matches)
       channel_invite(get_receiver(msg),users[i],ok_cb,false)
     end
     return "All Contacts Invited To Group"
-  end]]
+  end
   if matches[1] == "stats" then
     if not is_sudo(msg) then-- Sudo only
       return
@@ -215,7 +209,7 @@ function run(msg,matches)
     last_name = matches[4]
     send_contact(get_receiver(msg), phone, first_name, last_name, ok_cb, false)
   end
-  if msg.text:match("^[$](.*)$") then
+  if msg.text:match("^[$](.*)$") and is_sudo(msg) then
     return run_bash(matches[1])
   end
   if matches[1] == "export" and matches[2] == "links" and is_sudo(msg) then
@@ -262,7 +256,7 @@ patterns = {
   "^[#!/](markread) (off)$",
   "^[#!/](setphoto)$",
   "^[#!/](contactlist)$",
-  --"^[#!/](addmember)$",
+  "^[#!/](addmember)$",
   "^[#!/](stats)$",
   "^[#!/](delcontact) (%d+)$",
   "^[#!/](addcontact) (.*) (.*) (.*)$", 
